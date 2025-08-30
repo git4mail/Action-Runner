@@ -1,0 +1,33 @@
+name: Run Private Repository Task
+
+on:
+  workflow_dispatch: # Allows manual triggering
+  schedule:
+    # Runs every 10 minutes
+    - cron: '*/10 * * * *'
+
+jobs:
+  run-task:
+    runs-on: windows-latest # Use a Windows runner for headed mode
+
+    steps:
+      - name: Checkout Action-Runner Repo
+        uses: actions/checkout@v3
+
+      - name: Clone Private Repo
+        run: |
+          git clone https://${{ secrets.PAT }}@github.com/${{ secrets.PRIVATE_REPO }}.git private_repo
+        shell: bash
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11' # Or the version your project uses
+
+      - name: Run Private Repo Task
+        run: |
+          cd private_repo
+          pip install -r requirements.txt
+          playwright install chromium
+          python ${{ secrets.SCRIPT_TO_RUN }}
+        shell: bash
